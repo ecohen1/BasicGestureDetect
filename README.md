@@ -1,0 +1,1 @@
+Android app which displays either "Hello" or "World" based on accelerometer readings and touch events. Displays "WORLD!" if shaken extra hard.
