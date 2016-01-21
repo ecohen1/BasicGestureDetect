@@ -19,6 +19,7 @@ package com.example.android.basicgesturedetect;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.view.Menu;
@@ -33,6 +34,27 @@ import android.hardware.SensorEventListener;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorManager;
+import android.widget.TextView;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A simple launcher activity containing a summary sample description
@@ -49,6 +71,19 @@ public class MainActivity extends SampleActivityBase implements SensorEventListe
     private long lastUpdate = 0;
     private float last_x, last_y, last_z;
     private static final int SHAKE_THRESHOLD = 600;
+    private String readStream(InputStream is) {
+        try {
+            ByteArrayOutputStream bo = new ByteArrayOutputStream();
+            int i = is.read();
+            while(i != -1) {
+                bo.write(i);
+                i = is.read();
+            }
+            return bo.toString();
+        } catch (IOException e) {
+            return "";
+        }
+    }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -71,10 +106,64 @@ public class MainActivity extends SampleActivityBase implements SensorEventListe
 
                 float speed = Math.abs(x + y + z - last_x - last_y - last_z)/ diffTime * 10000;
 
-                if (speed > 2*SHAKE_THRESHOLD) {
+                if (speed > 7*SHAKE_THRESHOLD) {
                     Log.i(TAG,"WORLD!");
-                } else if (speed > SHAKE_THRESHOLD){
-                    Log.i(TAG,"world");
+                    AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            HttpClient httpclient = new DefaultHttpClient();
+                            HttpPost httppost = new HttpPost("http://mhealth.comli.com/insert_words.php");
+                            List<NameValuePair> nameValuePair = new ArrayList<>(1);
+                            nameValuePair.add(new BasicNameValuePair("words", "HARD SHAKE!"));
+                            try {
+                                httppost.setEntity(new UrlEncodedFormEntity(nameValuePair));
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+                            try {
+                                httpclient.execute(httppost);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            // Notifies UI when the task is done
+                        }
+                    }.execute();
+                } else if (speed > 4*SHAKE_THRESHOLD){
+                    Log.i(TAG,"hello...");
+                    AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+
+                        @Override
+                        protected Void doInBackground(Void... params) {
+                            HttpClient httpclient = new DefaultHttpClient();
+                            HttpPost httppost = new HttpPost("http://mhealth.comli.com/insert_words.php");
+                            List<NameValuePair> nameValuePair = new ArrayList<>(1);
+                            nameValuePair.add(new BasicNameValuePair("words", "soft shake..."));
+                            try {
+                                httppost.setEntity(new UrlEncodedFormEntity(nameValuePair));
+                            } catch (UnsupportedEncodingException e) {
+                                e.printStackTrace();
+                            }
+                            try {
+                                httpclient.execute(httppost);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+
+                            return null;
+                        }
+
+                        @Override
+                        protected void onPostExecute(Void aVoid) {
+                            // Notifies UI when the task is done
+                        }
+                    }.execute();
                 }
 
                 last_x = x;
@@ -134,6 +223,40 @@ public class MainActivity extends SampleActivityBase implements SensorEventListe
         logFragment.getLogView().setTextAppearance(this, R.style.Log);
         logFragment.getLogView().setBackgroundColor(Color.WHITE);
 
+
+        Log.i(TAG, "Posting...");
+
+        ///////////////////////////////////
+
+        AsyncTask<Void, Void, Void> asyncTask = new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                HttpClient httpclient = new DefaultHttpClient();
+                HttpPost httppost = new HttpPost("http://mhealth.comli.com/insert_words.php");
+                List<NameValuePair> nameValuePair = new ArrayList<>(1);
+                nameValuePair.add(new BasicNameValuePair("words", "Device startup."));
+                try {
+                    httppost.setEntity(new UrlEncodedFormEntity(nameValuePair));
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    httpclient.execute(httppost);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                // Notifies UI when the task is done
+                Log.i(TAG, "Posted!");
+            }
+        }.execute();
+        ///////////////////////////////////
 
         Log.i(TAG, "Ready");
     }
